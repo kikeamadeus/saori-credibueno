@@ -1,0 +1,41 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    DirectorySlash Off
+
+    # Bloquear acceso directo por URL a carpetas internas
+    RewriteRule ^(services|config|layouts|middleware|vendor)($|/.*$) - [F,L]
+
+    # =====================================
+    # AUTH (login / logout / refresh)
+    # =====================================
+    RewriteRule ^auth/?$ app/auth/index.php [L,QSA]
+    RewriteRule ^auth/(login|logout|refresh)(?:\.php)?$ app/auth/$1.php [L,QSA]
+
+    # =====================================
+    # MAIN (dashboard)
+    # =====================================
+
+    # Si alguien pide /main/index.php → redirigir a /main/
+    RewriteCond %{THE_REQUEST} \s/+main/index\.php[?\s] [NC]
+    RewriteRule ^main/index\.php$ /main/ [R=301,L]
+
+    # Cargar cualquier archivo de /main/ desde app/main/
+    RewriteRule ^main/(.*)$ app/main/$1 [L,QSA]
+
+    # =====================================
+    # API
+    # =====================================
+    RewriteRule ^api/(.*)$ api/$1 [L,QSA]
+
+    # =====================================
+    # Public assets
+    # =====================================
+    RewriteRule ^(css|js|image)/(.*)$ public/$1/$2 [L,QSA]
+
+</IfModule>
+
+# Bloqueo de archivos sensibles
+<FilesMatch "\.(env|ini|sql|md|yml|yaml)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

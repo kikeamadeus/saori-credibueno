@@ -1,0 +1,153 @@
+===========================================
+  BITORA – SETUP DE INSTALACIÓN Y USO
+===========================================
+
+Este archivo explica cómo instalar y levantar Bitora (API + Web + Móvil) en un entorno nuevo.
+
+-------------------------------------------
+1) REQUISITOS DEL SISTEMA
+-------------------------------------------
+- Docker y Docker Compose instalados
+- PHP 8+ (solo si se requiere ejecutar scripts manuales)
+- Composer instalado (para librería JWT)
+- Flutter 3.0+ con SDK configurado
+- Git
+
+-------------------------------------------
+2) CLONAR EL REPOSITORIO
+-------------------------------------------
+git clone https://github.com/TU_USUARIO/bitora.git
+cd bitora
+
+-------------------------------------------
+3) CONFIGURAR VARIABLES DE ENTORNO
+-------------------------------------------
+Dentro de la carpeta /src existe un archivo:
+    .env.example
+
+Copia ese archivo como:
+    .env
+
+Modifica credenciales de base de datos si es necesario.
+
+-------------------------------------------
+4) INSTALAR JWT (IMPORTANTE)
+-------------------------------------------
+Bitora utiliza JSON Web Tokens para manejo seguro de inicio de sesión.
+
+Desde la carpeta /src ejecutar:
+
+    composer install
+
+Si Composer no está instalado, descargarlo desde:
+    https://getcomposer.org/
+
+La librería instalada es:
+    firebase/php-jwt
+
+Esta librería permite:
+- Crear tokens
+- Validarlos
+- Manejar expiración
+- Proteger endpoints
+
+-------------------------------------------
+5) LEVANTAR LA PLATAFORMA (PHP + MariaDB)
+-------------------------------------------
+Desde la carpeta "platform":
+
+    docker-compose up -d --build
+
+Esto creará e iniciará:
+- Servidor PHP / Apache
+- MariaDB
+- Logs y carpetas necesarias
+
+-------------------------------------------
+6) VERIFICAR CONTENEDORES
+-------------------------------------------
+docker ps
+
+Debe aparecer algo similar a:
+- bitora_php
+- bitora_db
+
+Si no aparecen, volver a ejecutar:
+    docker-compose up -d --build
+
+-------------------------------------------
+7) PROBAR QUE PHP Y LA BASE DE DATOS FUNCIONAN
+-------------------------------------------
+Abrir en navegador:
+    http://localhost:8081
+
+Si carga correctamente, el servidor está activo.
+
+-------------------------------------------
+8) PROBAR JWT
+-------------------------------------------
+Los endpoints JWT están en:
+    /src/api/auth/
+
+Para probar generación de token (ejemplo):
+
+    POST http://localhost:8081/api/auth/login.php
+    BODY:
+    {
+      "email": "usuario@correo.com",
+      "password": "123456"
+    }
+
+Si es correcto, responderá con un token.
+
+Para acceder a endpoints protegidos:
+- Enviar "Authorization: Bearer TOKEN"
+
+-------------------------------------------
+9) LEVANTAR LA APLICACIÓN MÓVIL (FLUTTER)
+-------------------------------------------
+Entrar a la carpeta:
+    cd mobile
+
+Instalar dependencias:
+    flutter pub get
+
+Ejecutar:
+    flutter run
+
+Nota:
+El archivo "lib/config.dart" debe contener la URL de la API:
+    http://localhost:8081/api/
+
+-------------------------------------------
+10) ERRORES COMUNES Y SOLUCIONES
+-------------------------------------------
+- ERROR: "Port already in use"
+    Cambiar puertos en docker-compose.yml y repetir:
+    docker-compose down && docker-compose up -d
+
+- ERROR: "Database connection failed"
+    Verificar .env y que bitora_db esté corriendo:
+    docker ps
+
+- ERROR: Flutter no conecta a la API
+    Revisar la URL en lib/config.dart
+
+- ERROR: Token inválido o expirado
+    Enviar encabezado Authorization correctamente:
+        Authorization: Bearer TOKEN
+
+-------------------------------------------
+11) APAGAR LOS CONTENEDORES
+-------------------------------------------
+docker-compose down
+
+-------------------------------------------
+12) RECONSTRUIR TODO (SI HAY CAMBIOS IMPORTANTES)
+-------------------------------------------
+docker-compose down
+docker-compose up -d --build
+
+===========================================
+FIN DEL SETUP
+===========================================

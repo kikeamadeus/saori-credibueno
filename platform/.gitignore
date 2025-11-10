@@ -1,0 +1,45 @@
+# ───── DEPENDENCIAS ─────
+/src/vendor/
+vendor/
+# composer.lock  <-- Te recomiendo NO ignorarlo si el proyecto será compartido
+
+# ───── ARCHIVOS DE ENTORNO ─────
+.env
+.env.*
+
+# ───── ARCHIVOS DE IDES ─────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ───── SISTEMAS Y CACHE ─────
+.DS_Store
+Thumbs.db
+*.log
+*.cache
+/cache/
+*.phpunit.result.cache
+
+# ───── LOGS DEL PROYECTO ─────
+/src/logs/
+logs/
+
+# ───── ARCHIVOS COMPILADOS O BINARIOS (por seguridad) ─────
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# ───── CONFIGURACIONES LOCALES PHP ─────
+config.local.php
+
+# ───── (Opcional) DEPENDENCIAS JS ─────
+node_modules/
+package-lock.json
+yarn.lock
+
+# ───── (Opcional) DOCKER VOLUMES ─────
+db_data/

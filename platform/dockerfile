@@ -1,0 +1,37 @@
+# Usa la imagen base de PHP 8.2 con Apache
+FROM php:8.2-apache
+
+# Instalar dependencias necesarias y limpiar caché
+RUN apt-get update && apt-get install -y \
+    libzip-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    unzip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd zip mysqli pdo_mysql \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalar Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Habilitar mod_rewrite de Apache
+RUN a2enmod rewrite
+
+# Crear directorio de logs y configurar permisos
+RUN mkdir -p /var/www/html/logs \
+    && chown -R www-data:www-data /var/www/html/logs \
+    && chmod 755 /var/www/html/logs
+
+# Configurar permisos para Apache
+RUN chown -R www-data:www-data /var/www/html
+
+# Copiar el archivo php.ini personalizado
+COPY php.ini /usr/local/etc/php/php.ini
+
+# Exponer el puerto 80 para Apache
+EXPOSE 80
+
+# Establecer el directorio de trabajo
+WORKDIR /var/www/html
