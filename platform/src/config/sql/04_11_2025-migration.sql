@@ -8,12 +8,12 @@
 -- =====================================================
 
 -- Crear la base de datos
-CREATE DATABASE IF NOT EXISTS arcobit1_bitora1
+CREATE DATABASE IF NOT EXISTS arcobit1_saoricb1
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_general_ci;
 
 -- Seleccionar la base de datos
-USE arcobit1_bitora1;
+USE arcobit1_saoricb1;
 
 -- =====================================================
 -- TABLA: areas

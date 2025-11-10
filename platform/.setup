@@ -37,7 +37,7 @@ Bitora utiliza JSON Web Tokens para manejo seguro de inicio de sesión.
 
 Desde la carpeta /src ejecutar:
 
-    composer install
+    composer require firebase/php-jwt
 
 Si Composer no está instalado, descargarlo desde:
     https://getcomposer.org/

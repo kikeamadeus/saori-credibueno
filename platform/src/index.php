@@ -5,6 +5,9 @@ require_once __DIR__ . '/middleware/guest.php';
 
 //Constantes
 $pageTitle = ': Bienvenido(a)';
+
+header("Location: auth/");
+exit();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -12,7 +15,7 @@ $pageTitle = ': Bienvenido(a)';
 <body>
     <main>
         <div class="container center-align">
-            <h1>Bienvenido a Bitora, tu framework de confianza</h1>
+            <h1>Bienvenido a Credibueno</h1>
             <p>Comienza a desarrollar tu proyecto ahora</p>
             <a href="auth/">Iniciar sesión</a>
         </div>

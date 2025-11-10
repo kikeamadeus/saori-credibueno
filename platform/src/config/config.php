@@ -1,5 +1,5 @@
 <?php
-define('PROJECT', 'bitora');
+define('PROJECT', 'saori');
 define('APP_PATH', dirname(__DIR__));
 
 /* ::: Detectar script y directorio actual ::: */

@@ -31,12 +31,12 @@ INSERT INTO employees (
     settlement, municipality, state, zip_code,
     created_at, status_id
 ) VALUES (
-    'Juan', 'Gutierrez', 'Arizpe',
+    'Oscar Armando', 'Navarro', 'Gonzalez',
     1, 1,
-    'juan.arizpe@gmail.com', '8717903366',
-    NULL, NULL, '1990-09-19',
-    'Paseo la Rosita', '1020', NULL,
-    'Campestre la Rosita', 'Torreón', 'Coahuila', '27000',
+    'oscar.navarro@credibueno.mx', '8711114823',
+    NULL, NULL, '1967-09-18',
+    'Avenida Morelos', '1011', NULL,
+    'Centro', 'Torreón', 'Coahuila', '27000',
     NOW(), 1
 );
 

@@ -1,24 +1,24 @@
 version: '3.9'
-name: Bitora
+name: saori-credibueno
 
 services:
   db:
     image: mariadb:10.6.20
-    container_name: bitora_db
+    container_name: saori_db
     environment:
       MYSQL_ROOT_PASSWORD: admin
     volumes:
       - db_data:/var/lib/mysql
     networks:
-      - bitora_network
+      - saori_network
     ports:
-      - "3307:3306"
+      - "3308:3306"
 
   php:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: bitora_php
+    container_name: saori_php
     environment:
       - DOCKER=true
     volumes:
@@ -26,9 +26,9 @@ services:
       - ./logs:/var/www/logs
       - ./php.ini:/usr/local/etc/php/php.ini
     networks:
-      - bitora_network
+      - saori_network
     ports:
-      - "8081:80"
+      - "8082:80"
     depends_on:
       - db
     command: bash -c "chown -R www-data:www-data /var/www/html && find /var/www/html -type d -exec chmod 755 {} \\; && find /var/www/html -type f -exec chmod 644 {} \\; && apache2-foreground"
@@ -37,4 +37,4 @@ volumes:
   db_data:
 
 networks:
-  bitora_network:
+  saori_network:
