@@ -2,8 +2,9 @@
 /**
  * Middleware de autenticación para SAORI-Credibueno
  * -------------------------------------------------
- * - Valida sesión PHP existente (rápido).
+ * - Valida sesión PHP existente.
  * - Si no hay sesión, valida JWT (access_token y refresh_token).
+ * - Reconstruye sesión desde el token si es válido.
  * - Redirige al login o al refresh según corresponda.
  */
 
@@ -24,8 +25,7 @@ header("Pragma: no-cache");
 // 1) Validar sesión PHP activa
 // =====================================
 if (!empty($_SESSION['employee_id']) && !empty($_SESSION['employee_name'])) {
-    // Ya hay sesión iniciada → permitir continuar
-    return;
+    return; // Sesión activa → continuar
 }
 
 // =====================================
@@ -37,6 +37,21 @@ if ($accessToken) {
     $validation = validateToken($accessToken);
 
     if ($validation['valid'] && !$validation['expired']) {
+
+        // =====================================
+        // 🔁 Restaurar sesión desde el token
+        // =====================================
+        if (empty($_SESSION['employee_id']) && !empty($validation['data'])) {
+            $data = $validation['data'];
+
+            $_SESSION['employee_id'] = $data['id'] ?? 0;
+            $_SESSION['employee_name'] = trim(
+                ($data['name'] ?? '') . ' ' .
+                ($data['surname1'] ?? '') . ' ' .
+                ($data['surname2'] ?? '')
+            );
+        }
+
         // Token válido → permitir acceso
         return;
     }

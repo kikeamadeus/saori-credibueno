@@ -1,11 +1,11 @@
 -- =====================================================
 -- Proyecto: SAORI - CREDIBUENO
--- Versión: v1.0.1 (Fase 1)
+-- Versión: v1.0.2 (Fase 1)
 -- Fecha: 2025-11-14
 -- Descripción:
 --   Migración actualizada del sistema SAORI-Credibueno.
 --   Incluye autenticación, empleados, roles, estatus,
---   sucursales y áreas organizacionales.
+--   sucursales, áreas organizacionales y trazabilidad.
 -- =====================================================
 
 -- =====================================================
@@ -28,7 +28,8 @@ CREATE TABLE IF NOT EXISTS statuses (
     name VARCHAR(50) NOT NULL UNIQUE,
     description VARCHAR(255) DEFAULT NULL,
     can_login TINYINT(1) DEFAULT 1 COMMENT '0 = No puede iniciar sesión',
-    can_checkin TINYINT(1) DEFAULT 1 COMMENT '0 = No puede registrar asistencia'
+    can_checkin TINYINT(1) DEFAULT 1 COMMENT '0 = No puede registrar asistencia',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =====================================================
@@ -40,7 +41,8 @@ CREATE TABLE IF NOT EXISTS statuses (
 CREATE TABLE IF NOT EXISTS roles (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
-    description VARCHAR(255) DEFAULT NULL
+    description VARCHAR(255) DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =====================================================
@@ -68,8 +70,8 @@ CREATE TABLE IF NOT EXISTS branches (
     city VARCHAR(100) DEFAULT NULL,
     state VARCHAR(100) DEFAULT NULL,
     zip_code VARCHAR(10) DEFAULT NULL,
-    latitude DECIMAL(10,7) DEFAULT NULL COMMENT 'Latitud del punto central de la sucursal',
-    longitude DECIMAL(10,7) DEFAULT NULL COMMENT 'Longitud del punto central de la sucursal',
+    latitude DECIMAL(10,8) DEFAULT NULL COMMENT 'Latitud del punto central de la sucursal',
+    longitude DECIMAL(11,8) DEFAULT NULL COMMENT 'Longitud del punto central de la sucursal',
     checkin_radius_meters INT DEFAULT 300 COMMENT 'Radio máximo de validación en metros',
     created_at DATETIME NOT NULL
 );
@@ -91,12 +93,17 @@ CREATE TABLE IF NOT EXISTS employees (
     can_check_all TINYINT(1) DEFAULT 0 COMMENT '1 = Puede checar en todas las sucursales',
     id_role INT NOT NULL COMMENT 'Rol del empleado',
     status_id INT NOT NULL COMMENT 'Estado del empleado',
+    hire_date DATE NOT NULL COMMENT 'Fecha de ingreso del empleado',
     created_at DATETIME NOT NULL,
     updated_at DATETIME DEFAULT NULL,
-    FOREIGN KEY (id_role) REFERENCES roles(id),
-    FOREIGN KEY (status_id) REFERENCES statuses(id),
-    FOREIGN KEY (id_branch) REFERENCES branches(id),
+    FOREIGN KEY (id_role) REFERENCES roles(id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    FOREIGN KEY (status_id) REFERENCES statuses(id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    FOREIGN KEY (id_branch) REFERENCES branches(id)
+        ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (id_area) REFERENCES areas(id)
+        ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
 -- =====================================================
@@ -112,6 +119,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at DATETIME NOT NULL,
     updated_at DATETIME DEFAULT NULL,
     FOREIGN KEY (id_employee) REFERENCES employees(id)
+        ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 -- =====================================================
@@ -130,6 +138,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     last_used_at DATETIME DEFAULT NULL,
     is_revoked TINYINT(1) DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(id)
+        ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 -- =====================================================
@@ -144,5 +153,7 @@ CREATE TABLE IF NOT EXISTS session_logs (
     event_time DATETIME NOT NULL,
     ip_address VARCHAR(45) DEFAULT NULL,
     user_agent VARCHAR(255) DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (session_id) REFERENCES sessions(id)
+        ON UPDATE CASCADE ON DELETE CASCADE
 );

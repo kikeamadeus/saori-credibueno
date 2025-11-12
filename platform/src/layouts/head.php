@@ -14,6 +14,10 @@ function getCurrentView() {
         return 'main';
     }
 
+    if ($currentDir === 'auth') {
+        return 'auth';
+    }
+
     // Si estamos en /main/subcarpeta → nombre de la subcarpeta
     if ($parentDir === 'main') {
         return $currentDir;

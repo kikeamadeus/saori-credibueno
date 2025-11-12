@@ -114,6 +114,64 @@ button:hover {
   padding: 24px;
 }
 
+.dropdown-menu {
+  visibility: hidden;
+  position: absolute;
+  top: 6%;
+  right: 5rem;
+  background-color: #c9dfff;
+  width: 160px;
+  border-radius: 8px;
+  z-index: 9999;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  /* Oculto por defecto */
+  transform: scale(0.95);
+  /* Ligeramente contraído */
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: normal;
+  justify-content: left;
+  gap: .8rem;
+  padding: 15px;
+}
+
+.show {
+  visibility: visible;
+  flex-direction: column;
+  opacity: 1;
+  /* Visible */
+  transform: scale(1);
+  /* Tamaño normal */
+}
+
+.closing {
+  opacity: 0;
+  /* Animación de salida */
+  transform: scale(0.95);
+  /* Ligeramente contraído */
+  visibility: hidden;
+  /* Ocultar al final de la transición */
+}
+
+.dropdown-link {
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  color: #002d5e;
+  height: 30px;
+  line-height: 30px;
+  transition: all 0.3s ease;
+}
+
+.dropdown-link:hover {
+  background-color: #e7f1ffbf;
+  color: #00b49a;
+  padding: 0 5px;
+  border-radius: 5px;
+}
+
 /* ===== Media Queries globales ===== */
 
 @media screen and (max-width: 479px) {

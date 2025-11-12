@@ -7,9 +7,9 @@
  * - Diálogos modales
  */
 
-import { FormValidation } from "./form.validation.js";
-import { MenuBarHandler } from "./navmenu.js";
-import { DialogHandler } from "./dialog.handler.js";
+import { FormValidation } from "./events/form.js";
+import { DropdownHandler } from "./events/dropdown.js";
+import { DialogHandler } from "./events/dialog.js";
 
 document.addEventListener("DOMContentLoaded", () => {
     const path = window.location.pathname;
@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 2) Inicializar menú de navegación (solo vistas main)
     // ==========================================================
     if (isMain) {
-        const navMenu = new MenuBarHandler();
+        const navMenu = new DropdownHandler();
         navMenu.init();
     }
 
