@@ -1,56 +1,91 @@
 -- =====================================================
 -- Proyecto: SAORI - CREDIBUENO
--- Versión: v1.0.1 (Fase 1.1)
--- Fecha: 2025-11-12
+-- Versión: v1.0.1 (Fase 1)
+-- Fecha: 2025-11-14
 -- Descripción:
 --   Datos iniciales (seed) para entorno Credibueno.
---   Incluye roles, estatus y usuario administrador.
+--   Incluye estatus, roles, áreas, sucursales y usuario inicial.
 -- =====================================================
 
 USE arcobit1_saoricb1;
 
 -- =====================================================
--- 1. ESTATUS (para empleados)
+-- 1. ESTATUS (statuses)
 -- =====================================================
 INSERT INTO statuses (name, description, can_login, can_checkin)
 VALUES
-('Activo', 'Empleado con acceso al sistema', 1, 1),
-('Suspendido', 'Empleado temporalmente inactivo', 0, 0),
-('Baja', 'Empleado dado de baja', 0, 0),
-('Vacaciones', 'Empleado en periodo vacacional', 0, 0),
-('Incapacidad', 'Empleado en incapacidad médica', 0, 0);
+('Activo', 'Empleado con acceso total al sistema.', 1, 1),
+('Suspendido', 'Empleado temporalmente suspendido.', 0, 0),
+('Baja', 'Empleado dado de baja del sistema.', 0, 0),
+('Vacaciones', 'Empleado en periodo vacacional.', 0, 0),
+('Incapacidad', 'Empleado en incapacidad médica.', 0, 0);
 
 -- =====================================================
--- 2. ROLES
+-- 2. ROLES (roles)
 -- =====================================================
 INSERT INTO roles (name, description) VALUES
 ('Administrador', 'Configura horarios, genera reportes y aprueba actas. No puede checar asistencia.'),
-('Auxiliar Administrativo', 'Genera reportes y checa asistencia. No puede configurar ni modificar empleados.'),
+('Auxiliar Administrativo', 'Genera reportes y checa asistencia. No puede modificar empleados.'),
 ('Sistemas', 'Acceso total excepto aprobación de actas.'),
 ('Empleado', 'Puede checar asistencia y consultar su historial.');
 
 -- =====================================================
--- 3. EMPLEADO ADMINISTRADOR INICIAL
+-- 3. ÁREAS (areas)
+-- =====================================================
+INSERT INTO areas (name, created_at)
+VALUES
+('Administración', NOW()),
+('Sistemas', NOW()),
+('Operaciones', NOW());
+
+-- =====================================================
+-- 4. SUCURSALES (branches)
+-- =====================================================
+INSERT INTO branches (
+    name,
+    address,
+    city,
+    state,
+    zip_code,
+    latitude,
+    longitude,
+    checkin_radius_meters,
+    created_at
+) VALUES
+('Torreón',
+ 'Avenida Morelos #1011, Colonia Centro. Torreón, Coahuila C.P.: 27000',
+ 'Torreón', 'Coahuila', '27000',
+ 25.5392898, -103.4628589, 300, NOW()),
+('Gómez Palacio',
+ 'Madero 408 Local 3, esquina con Degollado, Colonia Centro. Gómez Palacio, Durango C.P.: 35000',
+ 'Gómez Palacio', 'Durango', '35000',
+ 25.5644138, -103.4968769, 400, NOW()),
+('Durango',
+ 'Calle Francisco Zarco #321, Colonia Centro, Durango, Durango C.P.: 34000',
+ 'Durango', 'Durango', '34000',
+ 24.0246569, -104.6649181, 400, NOW());
+
+-- =====================================================
+-- 5. EMPLEADO ADMINISTRADOR INICIAL
 -- =====================================================
 INSERT INTO employees (
     names, surname1, surname2,
     email, phone,
+    id_area, id_branch, can_check_all,
     id_role, status_id,
-    hire_date, vacation_days, vacation_used,
     created_at
 ) VALUES (
     'Oscar Armando', 'Navarro', 'González',
     'oscar.navarro@credibueno.mx', '8711114823',
-    1, 1,  -- Rol Administrador, Estatus Activo
-    '2020-01-15', 22, 0,  -- Fecha de ingreso + vacaciones por antigüedad
+    1, 1, 1,
+    1, 1,
     NOW()
 );
 
 -- =====================================================
--- 4. USUARIO ADMINISTRADOR
+-- 6. USUARIO ADMINISTRADOR
+-- Nota: Password hash generado con password_hash('admin1839', PASSWORD_BCRYPT)
 -- =====================================================
--- Nota: Reemplazar el hash si se desea otro password.
---       Actual: password = 'admin1839'
 INSERT INTO users (id_employee, username, password, created_at)
 VALUES (
     1,

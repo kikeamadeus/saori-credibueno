@@ -1,16 +1,31 @@
 <?php
 function getCurrentView() {
     $currentDir = basename(dirname($_SERVER['SCRIPT_FILENAME']));
-    $rootDir = basename(realpath(APP_PATH));
+    $parentDir  = basename(dirname(dirname($_SERVER['SCRIPT_FILENAME'])));
+    $rootDir    = basename(realpath(APP_PATH));
 
-    return ($currentDir === $rootDir) ? 'init' : $currentDir;
+    // Si estamos en /src → init
+    if ($currentDir === $rootDir) {
+        return 'init';
+    }
+
+    // Si estamos en /main directamente → main
+    if ($currentDir === 'main') {
+        return 'main';
+    }
+
+    // Si estamos en /main/subcarpeta → nombre de la subcarpeta
+    if ($parentDir === 'main') {
+        return $currentDir;
+    }
+
+    return 'init';
 }
 
 $currentView = getCurrentView();
 
-// Archivos CSS dinámicos
-$globalCss  = PROJECT . ".css";
-$viewCss    = PROJECT . "." . $currentView . ".css";
+$globalCss = PROJECT . ".css";
+$viewCss   = PROJECT . "." . $currentView . ".css";
 ?>
 
 <head>

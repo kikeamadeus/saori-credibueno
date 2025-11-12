@@ -1,11 +1,11 @@
 -- =====================================================
 -- Proyecto: SAORI - CREDIBUENO
--- Versión: v1.0.1 (Fase 1.1)
--- Fecha: 2025-11-12
+-- Versión: v1.0.1 (Fase 1)
+-- Fecha: 2025-11-14
 -- Descripción:
---   Migración mejorada con gestión inicial de vacaciones.
---   Incluye días de vacaciones según antigüedad laboral
---   y estructura para futuras solicitudes de vacaciones.
+--   Migración actualizada del sistema SAORI-Credibueno.
+--   Incluye autenticación, empleados, roles, estatus,
+--   sucursales y áreas organizacionales.
 -- =====================================================
 
 -- =====================================================
@@ -19,6 +19,9 @@ USE arcobit1_saoricb1;
 
 -- =====================================================
 -- 2. TABLA: statuses
+-- Descripción:
+--   Define los estados del empleado y controla si puede
+--   iniciar sesión o registrar asistencia.
 -- =====================================================
 CREATE TABLE IF NOT EXISTS statuses (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -30,6 +33,9 @@ CREATE TABLE IF NOT EXISTS statuses (
 
 -- =====================================================
 -- 3. TABLA: roles
+-- Descripción:
+--   Controla los permisos y capacidades de cada tipo
+--   de usuario dentro del sistema.
 -- =====================================================
 CREATE TABLE IF NOT EXISTS roles (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -38,7 +44,40 @@ CREATE TABLE IF NOT EXISTS roles (
 );
 
 -- =====================================================
--- 4. TABLA: employees
+-- 4. TABLA: areas
+-- Descripción:
+--   Agrupa a los empleados por división funcional para
+--   control de vacaciones y reportes.
+-- =====================================================
+CREATE TABLE IF NOT EXISTS areas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    created_at DATETIME NOT NULL
+);
+
+-- =====================================================
+-- 5. TABLA: branches
+-- Descripción:
+--   Sucursales físicas con ubicación GPS y radio de
+--   validación de asistencia.
+-- =====================================================
+CREATE TABLE IF NOT EXISTS branches (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    address VARCHAR(255) DEFAULT NULL,
+    city VARCHAR(100) DEFAULT NULL,
+    state VARCHAR(100) DEFAULT NULL,
+    zip_code VARCHAR(10) DEFAULT NULL,
+    latitude DECIMAL(10,7) DEFAULT NULL COMMENT 'Latitud del punto central de la sucursal',
+    longitude DECIMAL(10,7) DEFAULT NULL COMMENT 'Longitud del punto central de la sucursal',
+    checkin_radius_meters INT DEFAULT 300 COMMENT 'Radio máximo de validación en metros',
+    created_at DATETIME NOT NULL
+);
+
+-- =====================================================
+-- 6. TABLA: employees
+-- Descripción:
+--   Registro de empleados con rol, estatus, sucursal y área.
 -- =====================================================
 CREATE TABLE IF NOT EXISTS employees (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -47,19 +86,23 @@ CREATE TABLE IF NOT EXISTS employees (
     surname2 VARCHAR(100) DEFAULT NULL,
     email VARCHAR(100) DEFAULT NULL UNIQUE,
     phone VARCHAR(20) DEFAULT NULL,
-    id_role INT NOT NULL COMMENT 'Rol del empleado (Administrador, Auxiliar, Sistemas, Empleado)',
-    status_id INT NOT NULL COMMENT 'Activo / Suspendido / Baja / Vacaciones / Incapacidad',
-    hire_date DATE NOT NULL COMMENT 'Fecha de ingreso del empleado',
-    vacation_days INT DEFAULT 0 COMMENT 'Días totales de vacaciones según antigüedad',
-    vacation_used INT DEFAULT 0 COMMENT 'Días de vacaciones tomados en el año actual',
+    id_area INT NOT NULL COMMENT 'Área a la que pertenece el empleado',
+    id_branch INT DEFAULT NULL COMMENT 'Sucursal asignada',
+    can_check_all TINYINT(1) DEFAULT 0 COMMENT '1 = Puede checar en todas las sucursales',
+    id_role INT NOT NULL COMMENT 'Rol del empleado',
+    status_id INT NOT NULL COMMENT 'Estado del empleado',
     created_at DATETIME NOT NULL,
     updated_at DATETIME DEFAULT NULL,
     FOREIGN KEY (id_role) REFERENCES roles(id),
-    FOREIGN KEY (status_id) REFERENCES statuses(id)
+    FOREIGN KEY (status_id) REFERENCES statuses(id),
+    FOREIGN KEY (id_branch) REFERENCES branches(id),
+    FOREIGN KEY (id_area) REFERENCES areas(id)
 );
 
 -- =====================================================
--- 5. TABLA: users
+-- 7. TABLA: users
+-- Descripción:
+--   Credenciales de acceso vinculadas a un empleado.
 -- =====================================================
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -72,7 +115,9 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- =====================================================
--- 6. TABLA: sessions
+-- 8. TABLA: sessions
+-- Descripción:
+--   Control de sesiones activas (Refresh Tokens).
 -- =====================================================
 CREATE TABLE IF NOT EXISTS sessions (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -88,7 +133,9 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 
 -- =====================================================
--- 7. TABLA: session_logs
+-- 9. TABLA: session_logs
+-- Descripción:
+--   Historial de eventos de sesión (login, logout, etc).
 -- =====================================================
 CREATE TABLE IF NOT EXISTS session_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -98,23 +145,4 @@ CREATE TABLE IF NOT EXISTS session_logs (
     ip_address VARCHAR(45) DEFAULT NULL,
     user_agent VARCHAR(255) DEFAULT NULL,
     FOREIGN KEY (session_id) REFERENCES sessions(id)
-);
-
--- =====================================================
--- 8. TABLA: vacation_requests
--- Descripción: Solicitudes de vacaciones por empleado,
---              con control de fechas, días y aprobación.
--- =====================================================
-CREATE TABLE IF NOT EXISTS vacation_requests (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    id_employee INT NOT NULL,
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
-    total_days INT NOT NULL,
-    status ENUM('pendiente', 'aprobado', 'rechazado') DEFAULT 'pendiente',
-    approved_by INT DEFAULT NULL COMMENT 'ID del usuario que aprueba la solicitud',
-    created_at DATETIME NOT NULL,
-    updated_at DATETIME DEFAULT NULL,
-    FOREIGN KEY (id_employee) REFERENCES employees(id),
-    FOREIGN KEY (approved_by) REFERENCES users(id)
 );

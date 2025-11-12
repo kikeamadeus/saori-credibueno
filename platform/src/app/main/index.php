@@ -8,7 +8,10 @@ $pageTitle = ": Dashboard";
 <body>
     <?php include APP_PATH . '/layouts/navbar.php' ?>
     <main>
-        <p>Login Exitoso</p>
+        <div class="container">
+            <p>Login Exitoso</p>
+        </div>
     </main>
+    <?php include APP_PATH . '/layouts/scripts.php' ?>
 </body>
 </html>
