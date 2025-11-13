@@ -9,7 +9,7 @@ export class DropdownHandler {
         if (!this.navMenu.classList.contains("show")) {
             this.navMenu.classList.add("show");
         } else {
-            this.closeMenu();
+            this.closeDropdown();
         }
     }
 

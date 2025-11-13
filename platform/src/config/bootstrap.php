@@ -11,7 +11,10 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/database.php';
 
 // Helpers globales (ejemplo)
-$helpers = [__DIR__ . '/../helpers/security.php', __DIR__ . '/../helpers/sanitize.php'];
+$helpers = [
+    __DIR__ . '/../helpers/security.php', 
+    __DIR__ . '/../helpers/sanitize.php'
+];
 foreach ($helpers as $helper) {
     if (file_exists($helper)) {
         require_once $helper;

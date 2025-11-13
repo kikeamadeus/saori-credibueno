@@ -59,9 +59,9 @@ $menuItems = [
               <path d="M2 12C2 12.3373 2.0152 12.6709 2.04494 13M9 22C8.6584 21.8876 8.32471 21.7564 8 21.6078M3.20939 17C3.01655 16.6284 2.84453 16.2433 2.69497 15.8462M4.83122 19.3065C5.1369 19.6358 5.46306 19.9441 5.80755 20.2292" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
             </svg>'
     ],
-    'sucursales' => [
+    'branches' => [
         'label' => 'Sucursales',
-        'href'  => BASE_URL . '/main/sucursales/',
+        'href'  => BASE_URL . '/main/branches/',
         'icon'  => '
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" color="currentColor" fill="none">
               <path d="M2.97659 10.5146V15.009C2.97659 17.8339 2.97659 19.2463 3.85624 20.1239C4.73588 21.0015 6.15165 21.0015 8.98318 21.0015H12.9876" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
