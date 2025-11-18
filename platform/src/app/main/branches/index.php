@@ -45,10 +45,14 @@ $branches = getAllBranches();
                                         </div>
                                         <div class="dialog-content center-align">
                                             <h2>Editar Sucursal</h2>
-                                            <form action="#" method="POST">
+                                            <form action="actions/edit.php" method="POST">
                                                 <div class="input-field">
                                                     <input placeholder="Nombre Sucursal" name="branch_name" value="<?= htmlspecialchars($branch['name']) ?>" type="text">
                                                 </div>
+                                                <div class="input-field">
+                                                    <textarea placeholder="Domicilio" name="address" id=""><?= htmlspecialchars($branch['address']) ?></textarea>
+                                                </div>
+                                                <button type="submit">Modificar</button>
                                             </form>
                                         </div>
                                     </dialog>

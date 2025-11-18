@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS branches (
     latitude DECIMAL(10,8) DEFAULT NULL COMMENT 'Latitud del punto central de la sucursal',
     longitude DECIMAL(11,8) DEFAULT NULL COMMENT 'Longitud del punto central de la sucursal',
     checkin_radius_meters INT DEFAULT 300 COMMENT 'Radio máximo de validación en metros',
+    is_active TINYINT(1) DEFAULT 1 COMMENT '0 = Inactiva, 1 = Activa',
     created_at DATETIME NOT NULL
 );
 

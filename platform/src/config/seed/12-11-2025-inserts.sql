@@ -21,22 +21,22 @@ INSERT INTO areas (name, created_at) VALUES
 -- =====================================================
 -- 2. SUCURSALES
 -- =====================================================
-INSERT INTO branches (name, address, city, state, zip_code, latitude, longitude, checkin_radius_meters, created_at)
+INSERT INTO branches (name, address, city, state, zip_code, latitude, longitude, checkin_radius_meters, is_active, created_at)
 VALUES
 ('Torreón',
  'Avenida Morelos #1011, Colonia Centro. Torreón, Coahuila',
  'Torreón', 'Coahuila', '27000',
- 25.5392898, -103.4628589, 300, NOW()),
+ 25.5392898, -103.4628589, 300, 1, NOW()),
 
 ('Gómez Palacio',
  'Madero 408 Local 3, esquina con Degollado, Colonia Centro. Gómez Palacio, Durango',
  'Gómez Palacio', 'Durango', '35000',
- 25.5644138, -103.4968769, 400, NOW()),
+ 25.5644138, -103.4968769, 400, 1,  NOW()),
 
 ('Durango',
  'Calle Francisco Zarco #321, Colonia Centro, Durango, Durango',
  'Durango', 'Durango', '34000',
- 24.0246569, -104.6649181, 400, NOW());
+ 24.0246569, -104.6649181, 400, 1, NOW());
 
 -- =====================================================
 -- 3. ESTATUS DE EMPLEADOS
