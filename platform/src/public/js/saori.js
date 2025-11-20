@@ -10,6 +10,7 @@
 import { FormValidation } from "./events/form.js";
 import { DropdownHandler } from "./events/dropdown.js";
 import { DialogHandler } from "./events/dialog.js";
+import { TabsHandler } from "./events/tabs.js";
 
 document.addEventListener("DOMContentLoaded", () => {
     const path = window.location.pathname;
@@ -36,7 +37,13 @@ document.addEventListener("DOMContentLoaded", () => {
     dialogHandler.init();
 
     // ==========================================================
-    // 4) Notificación de carga (para debugging o monitoreo)
+    // 4) Inicializar pestañas (tabs)
+    // ==========================================================
+    const tabs = new TabsHandler();
+    tabs.init();
+
+    // ==========================================================
+    // 5) Notificación de carga (para debugging o monitoreo)
     // ==========================================================
     //console.info(`✅ SAORI global script cargado correctamente [${isMain ? 'main' : 'public'}]`);
 });
