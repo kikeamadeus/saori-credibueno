@@ -408,6 +408,13 @@ button:hover {
   gap: 1rem;
 }
 
+.col-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-items: center;
+  gap: 1rem;
+}
+
 /* ===== Media Queries globales ===== */
 
 @media screen and (max-width: 479px) {

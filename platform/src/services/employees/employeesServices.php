@@ -67,6 +67,48 @@ function createEmployee(array $data): ?int {
 }
 
 /**
+ * Actualización de datos del empleado.
+ */
+
+function updateEmployee(array $data): bool
+{
+    $pdo = getConnectionMySql();
+
+    $sql = "
+        UPDATE employees SET
+            names = :names,
+            surname1 = :surname1,
+            surname2 = :surname2,
+            email = :email,
+            phone = :phone,
+            id_area = :id_area,
+            id_branch = :id_branch,
+            id_role = :id_role,
+            status_id = :status_id,
+            hire_date = :hire_date,
+            updated_at = NOW()
+        WHERE id = :id
+        LIMIT 1
+    ";
+
+    $stmt = $pdo->prepare($sql);
+
+    return $stmt->execute([
+        'id'         => $data['id'],
+        'names'      => $data['names'],
+        'surname1'   => $data['surname1'],
+        'surname2'   => $data['surname2'],
+        'email'      => $data['email'],
+        'phone'      => $data['phone'],
+        'id_area'    => $data['id_area'],
+        'id_branch'  => $data['id_branch'],
+        'id_role'    => $data['id_role'],
+        'status_id'  => $data['status'],
+        'hire_date'  => $data['hire_date']
+    ]);
+}
+
+/**
  * Obtener todos los empleados con su estatus
  */
 function getAllEmployees(): array {
@@ -80,6 +122,7 @@ function getAllEmployees(): array {
             e.surname2,
             e.email,
             e.phone,
+
             e.id_area,
             a.name AS area_name,
 
@@ -94,6 +137,8 @@ function getAllEmployees(): array {
             e.status_id,
             s.name AS status_name,
 
+            u.username AS username,
+
             e.hire_date,
             e.created_at,
             e.updated_at
@@ -102,6 +147,7 @@ function getAllEmployees(): array {
         INNER JOIN areas a ON a.id = e.id_area
         LEFT JOIN branches b ON b.id = e.id_branch
         INNER JOIN roles r ON r.id = e.id_role
+        LEFT JOIN users u ON u.id_employee = e.id
         ORDER BY e.id ASC
     ";
 

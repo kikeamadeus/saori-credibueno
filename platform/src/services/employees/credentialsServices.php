@@ -44,3 +44,32 @@ function generateEmployeeCredentials(): array
         'password' => generateRandomPassword(8)
     ];
 }
+
+/**
+ * Resetear la contraseña de un empleado por ID
+ */
+function resetEmployeePassword(int $employeeId): ?string
+{
+    $pdo = getConnectionMySql();
+
+    // Generar nueva contraseña
+    $newPassword = generateRandomPassword(8);
+
+    // Hash para guardar en la BD
+    $passwordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+
+    // Actualizar contraseña
+    $stmt = $pdo->prepare("
+        UPDATE users 
+        SET password = :pwd, updated_at = NOW()
+        WHERE id_employee = :id
+    ");
+
+    $stmt->execute([
+        'pwd' => $passwordHash,
+        'id'  => $employeeId
+    ]);
+
+    // Regresar la contraseña pura (solo para mostrarla en alert)
+    return $newPassword;
+}

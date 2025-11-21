@@ -62,11 +62,10 @@ $pageTitle = ": Empleados";
                                     <tr>
                                         <th class="th radius-top-left">ID</th>
                                         <th class="th">Empleado</th>
-                                        <th class="th">Correo</th>
                                         <th class="th">Teléfono</th>
                                         <th class="th">Sucursal</th>
-                                        <th class="th">Área</th>
                                         <th class="th">Rol</th>
+                                        <th class="th">Fecha de Ingreso</th>
                                         <th class="th radius-top-right">Acciones</th>
                                     </tr>
                                 </thead>
@@ -74,11 +73,10 @@ $pageTitle = ": Empleados";
                                     <tr>
                                         <td class="td center-align"><?= $emp['id'] ?></td>
                                         <td class="td"><?= $emp['names'] . ' ' . $emp['surname1'] . ' ' . $emp['surname2'] ?></td>
-                                        <td class="td"><?= $emp['email'] ?></td>
                                         <td class="td center-align"><?= $emp['phone'] ?></td>
                                         <td class="td center-align"><?= $emp['branch_name'] ?></td>
-                                        <td class="td center-align"><?= $emp['area_name'] ?></td>
-                                        <td class="td center-align"><?= $emp['role_name'] ?></td>
+                                        <td class="td"><?= $emp['role_name'] ?></td>
+                                        <td class="td center-align"><?= $emp['hire_date'] ?></td>
                                         <td class="td center-align">
                                             <a data-dialog-open="settings-dialog_<?= $emp['id'] ?>" class="action-table" href="#!">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" color="#087895" fill="none">
@@ -113,8 +111,112 @@ $pageTitle = ": Empleados";
                                                 </svg>
                                             </a>
                                         </div>
-                                        <div class="dialog-content">
+                                        <div class="dialog-content center-align">
                                             <h2 class="title-dialogs">Modificar Empleado</h2>
+                                            <form action="actions/update.php" method="POST">
+                                                <input type="hidden" name="id" value="<?= $emp['id'] ?>">
+                                                <div class="col-3">
+                                                    <div class="input-field">
+                                                        <label for="names">Nombre(s)</label>
+                                                        <input id="names" type="text" name="names" value="<?= htmlspecialchars($emp['names']) ?>">
+                                                    </div>
+                                                    <div class="input-field">
+                                                        <label for="surname1">Apellido Paterno</label>
+                                                        <input id="surname1" type="text" name="surname1" value="<?=  htmlspecialchars($emp['surname1']) ?>">
+                                                    </div>
+                                                    <div class="input-field">
+                                                        <label for="surname2">Apellido Materno</label>
+                                                        <input id="surname2" type="text" name="surname2" value="<?= htmlspecialchars($emp['surname2']) ?>">
+                                                    </div>
+                                                </div>
+                                                <div class="col-2">
+                                                    <div class="input-field">
+                                                        <label for="email">Correo Electrónico</label>
+                                                        <input id="email" type="email" name="email" value="<?= htmlspecialchars($emp['email']) ?>">
+                                                    </div>
+                                                    <div class="input-field">
+                                                        <label for="phone">Teléfono</label>
+                                                        <input id="phone" type="text" name="phone" value="<?= htmlspecialchars($emp['phone']) ?>">
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="input-field">
+                                                        <label for="id_area">Área</label>
+                                                        <select name="id_area" required>
+                                                            <option value="<?= $emp['id_area'] ?>" selected>
+                                                                <?= htmlspecialchars($emp['area_name']) ?>
+                                                            </option>
+                                                            <?php foreach ($areas as $area): ?>
+                                                                <?php if ($area['id'] != $emp['id_area']): ?>
+                                                                    <option value="<?= $area['id'] ?>">
+                                                                        <?= htmlspecialchars($area['name']) ?>
+                                                                    </option>
+                                                                <?php endif; ?>
+                                                            <?php endforeach; ?>
+                                                        </select>
+                                                    </div>
+                                                    <div class="input-field">
+                                                        <label for="id_branch">Sucursal</label>
+                                                        <select name="id_branch" required>
+                                                            <option value="<?= $emp['id_branch'] ?>" selected>
+                                                                <?= htmlspecialchars($emp['branch_name']) ?>
+                                                            </option>
+                                                            <?php foreach ($branches as $b): ?>
+                                                                <?php if ($b['id'] != $emp['id_branch']): ?>
+                                                                    <option value="<?= $b['id'] ?>">
+                                                                        <?= htmlspecialchars($b['name']) ?>
+                                                                    </option>
+                                                                <?php endif; ?>
+                                                            <?php endforeach; ?>
+                                                        </select>
+                                                    </div>
+                                                    <div class="input-field">
+                                                        <label for="id_role">Rol</label>
+                                                        <select name="id_role" required>
+                                                            <option value="<?= $emp['id_role'] ?>" selected>
+                                                                <?= htmlspecialchars($emp['role_name']) ?>
+                                                            </option>
+                                                            <?php foreach ($roles as $r): ?>
+                                                                <?php if ($r['id'] != $emp['id_role']): ?>
+                                                                    <option value="<?= $r['id'] ?>">
+                                                                        <?= htmlspecialchars($r['name']) ?>
+                                                                    </option>
+                                                                <?php endif; ?>
+                                                            <?php endforeach; ?>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-4 aux_row">
+                                                    <div class="input-field">
+                                                        <label for="hire_date">Fecha de Ingreso</label>
+                                                        <input id="hire_date" type="date" name="hire_date" value="<?= $emp['hire_date'] ?>">
+                                                    </div>
+                                                    <div class="input-field">
+                                                        <label for="status">Estatus</label>
+                                                        <select name="status" required>
+                                                            <option value="<?= $emp['status_id'] ?>" selected>
+                                                                <?= htmlspecialchars($emp['status_name']) ?>
+                                                            </option>
+                                                            <?php foreach ($statusList as $s): ?>
+                                                                <?php if ($s['id'] != $emp['status_id']): ?>
+                                                                    <option value="<?= $s['id'] ?>">
+                                                                        <?= htmlspecialchars($s['name']) ?>
+                                                                    </option>
+                                                                <?php endif; ?>
+                                                            <?php endforeach; ?>
+                                                        </select>
+                                                    </div>
+                                                    <div class="input-field">
+                                                        <label for="username">Usuario</label>
+                                                        <input id="username" placeholder="Usuario" readonly type="text" value="<?= htmlspecialchars($emp['username']) ?>">
+                                                    </div>
+                                                    <div class="input-field">
+                                                        <label for="reset">Contraseña</label>
+                                                        <a class="btn" href="actions/reset_password.php?id=<?= $emp['id'] ?>">Regenerar</a>
+                                                    </div>
+                                                </div>
+                                                <button type="submit">Guardar cambios</button>
+                                            </form>
                                         </div>
                                     </dialog>
                                 <?php endforeach; ?>
