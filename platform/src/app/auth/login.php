@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // =====================================================
         $_SESSION['employee_id'] = $result['employee']['id'];
         $_SESSION['employee_name'] = $result['employee']['full_name'];
+        $_SESSION['employee_role'] = $result['employee']['id_role'];
 
         // Regenerar la sesión por seguridad
         session_regenerate_id(true);

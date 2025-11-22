@@ -22,10 +22,14 @@ header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 
 // =====================================
-// 1) Validar sesión PHP activa
+// 1) Si la sesión ya existe, continuar
 // =====================================
-if (!empty($_SESSION['employee_id']) && !empty($_SESSION['employee_name'])) {
-    return; // Sesión activa → continuar
+if (
+    !empty($_SESSION['employee_id']) &&
+    !empty($_SESSION['employee_name']) &&
+    isset($_SESSION['employee_role'])
+) {
+    return; // Sesión válida → continuar
 }
 
 // =====================================
@@ -34,30 +38,34 @@ if (!empty($_SESSION['employee_id']) && !empty($_SESSION['employee_name'])) {
 $accessToken = $_COOKIE['access_token'] ?? null;
 
 if ($accessToken) {
+
     $validation = validateToken($accessToken);
 
     if ($validation['valid'] && !$validation['expired']) {
 
-        // =====================================
-        // 🔁 Restaurar sesión desde el token
-        // =====================================
-        if (empty($_SESSION['employee_id']) && !empty($validation['data'])) {
+        // ===============================
+        // 🔁 Reconstruir sesión desde token
+        // ===============================
+        if (!empty($validation['data'])) {
+
             $data = $validation['data'];
 
-            $_SESSION['employee_id'] = $data['id'] ?? 0;
-            $_SESSION['employee_name'] = trim(
+            $fullName = trim(
                 ($data['name'] ?? '') . ' ' .
                 ($data['surname1'] ?? '') . ' ' .
                 ($data['surname2'] ?? '')
             );
+
+            $_SESSION['employee_id']   = $data['id'] ?? 0;
+            $_SESSION['employee_name'] = $fullName;
+            $_SESSION['employee_role'] = $data['id_role'] ?? null;
         }
 
-        // Token válido → permitir acceso
-        return;
+        return; // Token válido → permitir acceso
     }
 
+    // token expirado → intentar refrescar
     if ($validation['expired']) {
-        // Token expirado → ir a refresh
         header("Location: /auth/refresh.php");
         exit;
     }
@@ -74,7 +82,8 @@ if ($refreshToken) {
 }
 
 // =====================================
-// 4) Ninguna autenticación → login
+// 4) Ninguna autenticación válida → login
 // =====================================
 header("Location: /auth/");
 exit;
+?>

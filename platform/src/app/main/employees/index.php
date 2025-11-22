@@ -228,7 +228,7 @@ $pageTitle = ": Empleados";
             </div>
 
 
-            <a data-dialog-open="categoryDialog" class="btn-floating">
+            <a data-dialog-open="createEmployeeDialog" class="btn-floating">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" color="#ffffff" fill="none" style="margin-bottom: 4px;">
                     <path d="M14 8.5C14 5.73858 11.7614 3.5 9 3.5C6.23858 3.5 4 5.73858 4 8.5C4 11.2614 6.23858 13.5 9 13.5C11.7614 13.5 14 11.2614 14 8.5Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
                     <path d="M16 20.5C16 16.634 12.866 13.5 9 13.5C5.13401 13.5 2 16.634 2 20.5" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -237,7 +237,7 @@ $pageTitle = ": Empleados";
             </a>
 
             <!-- Diálogo -->
-            <dialog id="categoryDialog" class="modal">
+            <dialog id="createEmployeeDialog" class="modal">
                 <div class="dialog-action">
                     <a data-dialog-close href="#!">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" color="currentColor" fill="none">

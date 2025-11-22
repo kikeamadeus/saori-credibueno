@@ -31,7 +31,7 @@ function loginUser($username, $password) {
 
             // Traer datos del empleado
             $stmtEmp = $pdo->prepare("
-                SELECT id, names, surname1, surname2
+                SELECT id, names, surname1, surname2, id_role
                 FROM employees
                 WHERE id = :id_employee
                 LIMIT 1
@@ -48,7 +48,8 @@ function loginUser($username, $password) {
                     "id"       => $employee['id'],
                     "name"     => $employee['names'],
                     "surname1" => $employee['surname1'],
-                    "surname2" => $employee['surname2']
+                    "surname2" => $employee['surname2'],
+                    "id_role"     => $employee['id_role']
                 ];
 
                 $accessToken  = generateToken($payload);
@@ -75,6 +76,7 @@ function loginUser($username, $password) {
                     "message" => "Login exitoso",
                     "employee" => [
                         "id" => $employee['id'],
+                        "id_role" => $employee['id_role'],
                         "full_name" => trim($employee['names'] . ' ' . $employee['surname1'] . ' ' . ($employee['surname2'] ?? ''))
                     ],
                     "access_token"  => $accessToken,
