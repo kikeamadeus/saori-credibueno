@@ -154,3 +154,31 @@ function restoreBranch(int $id): bool {
 
     return $stmt->execute(['id' => $id]);
 }
+
+/**
+ * Obtiene al empleado con su sucursal y coordenadas
+ */
+function getEmployeeWithBranch(int $employeeId): ?array {
+    $pdo = getConnectionMySql();
+
+    $stmt = $pdo->prepare("
+        SELECT 
+            e.id AS employee_id,
+            e.names,
+            e.surname1,
+            e.surname2,
+            e.id_branch,
+            b.latitude,
+            b.longitude,
+            b.checkin_radius_meters
+        FROM employees e
+        LEFT JOIN branches b ON e.id_branch = b.id
+        WHERE e.id = :id
+        LIMIT 1
+    ");
+
+    $stmt->execute(['id' => $employeeId]);
+    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    return $data ?: null;
+}
