@@ -54,7 +54,7 @@ if (strtotime($session['expires_at']) < time()) {
 
 //Obtener nombre completo del usuario
 $stmtEmp = $pdo->prepare("
-    SELECT names, surname1, surname2
+    SELECT names, surname1, surname2, id_role
     FROM employees
     WHERE id = :id
     LIMIT 1
@@ -69,7 +69,8 @@ $employeeFullName = trim(
 //Crear nuevo access token con el mismo payload
 $payload = [
     "id" => $userId,
-    "full_name" => $employeeFullName
+    "full_name" => $employeeFullName,
+    "role_id" => (int)$row['id_role']
 ];
 
 $newAccess = generateToken($payload);
@@ -84,7 +85,8 @@ echo json_encode([
     "refresh_token" => $refreshToken,
     "employee" => [
         "id" => $userId,
-        "full_name" => $employeeFullName
+        "full_name" => $employeeFullName,
+        "role_id" => (int)$row['id_role']
     ]
 ]);
 exit;

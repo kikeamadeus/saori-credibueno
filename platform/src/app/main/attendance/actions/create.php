@@ -9,8 +9,8 @@ require_once APP_PATH . '/services/schedules/scheduleServices.php';
 // 1) Zona horaria
 // ===========================================================
 date_default_timezone_set("America/Monterrey");
-//$now = new DateTime(); // hora local exacta
-$now = new DateTime("2025-11-23 08:20:00"); // <-- Simulación de hora manual
+$now = new DateTime(); // hora local exacta
+//$now = new DateTime("2025-11-23 08:20:00"); // <-- Simulación de hora manual
 
 // ===========================================================
 // 2) ID del empleado

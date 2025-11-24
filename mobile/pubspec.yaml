@@ -17,6 +17,9 @@ dependencies:
   flutter_native_splash: ^2.3.9   # Splash screen
   shared_preferences: ^2.3.2      # Almacenamiento local
   flutter_secure_storage: ^9.0.0  # Almacenamiento seguro
+  rename_app: ^1.6.5
+  flutter_launcher_icons: ^0.13.1 # Para cambiar el ícono de la app
+  google_fonts: ^6.1.0          # Fuentes de Google
 
 dev_dependencies:
   flutter_test:
@@ -28,6 +31,12 @@ flutter:
 
   assets:
     - assets/images/
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/icon.png"
+  remove_alpha_ios: true
 
 flutter_native_splash:
   color: "#F1F1F1"   # Fondo gris

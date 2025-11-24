@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../middleware/guest.php';
 
-$pageTitle = ': Nómina & Asistencia';
+$pageTitle = ': Check-in & Asistencia';
 ?>
 <!DOCTYPE html>
 <html lang="es-MX">
