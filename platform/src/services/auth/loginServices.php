@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/../../config/bootstrap.php';
 require_once __DIR__ . '/../../helpers/jwt.php';
-require_once __DIR__ . '/../sessions/sessionService.php'; // ✅ usamos el servicio de sesiones
+require_once __DIR__ . '/../sessions/sessionService.php';
+require_once __DIR__ . '/../auth/permissionServices.php';
 $errors = require __DIR__ . '/../../config/errors.php';
 
 /**
@@ -29,7 +30,7 @@ function loginUser($username, $password) {
 
         if ($user && password_verify($password, $user['password'])) {
 
-            // Traer datos del empleado
+            // Obtener datos del empleado
             $stmtEmp = $pdo->prepare("
                 SELECT id, names, surname1, surname2, id_role
                 FROM employees
@@ -41,43 +42,48 @@ function loginUser($username, $password) {
 
             if ($employee) {
 
-                // ===============================
-                // 1) GENERAR TOKENS
-                // ===============================
+                // ==================================================
+                // 1) PERMISOS DEL ROL (NUEVO)
+                // ==================================================
+                $permissions = getPermissionsByRole($pdo, $employee['id_role']);
+
+                // ==================================================
+                // 2) GENERAR TOKENS
+                // ==================================================
                 $payload = [
                     "id"       => $employee['id'],
                     "name"     => $employee['names'],
                     "surname1" => $employee['surname1'],
                     "surname2" => $employee['surname2'],
-                    "id_role"     => $employee['id_role']
+                    "id_role"  => $employee['id_role']
                 ];
 
                 $accessToken  = generateToken($payload);
                 $refreshToken = generateRefreshToken($employee['id']);
 
-                // ===============================
-                // 2) GUARDAR SESIÓN EN BD
-                // ===============================
+                // ==================================================
+                // 3) GUARDAR SESIÓN EN BD
+                // ==================================================
                 $expiresAt = (new DateTime())->add(new DateInterval('P90D'));
 
-                // ⬇ ⬇ USAMOS EL SERVICIO DE SESIONES
                 $sessionId = createSession(
                     $pdo,
-                    $employee['id'],   // consistente con el refresh token
+                    $employee['id'],
                     $refreshToken,
                     $expiresAt
                 );
 
-                // ===============================
-                // 3) RESPUESTA PARA API Y WEB
-                // ===============================
+                // ==================================================
+                // 4) RESPUESTA PARA API Y WEB
+                // ==================================================
                 return [
                     "success" => true,
                     "message" => "Login exitoso",
                     "employee" => [
                         "id" => $employee['id'],
                         "id_role" => $employee['id_role'],
-                        "full_name" => trim($employee['names'] . ' ' . $employee['surname1'] . ' ' . ($employee['surname2'] ?? ''))
+                        "full_name" => trim($employee['names'] . ' ' . $employee['surname1'] . ' ' . ($employee['surname2'] ?? '')),
+                        "permissions" => $permissions  // ✅ NUEVO
                     ],
                     "access_token"  => $accessToken,
                     "refresh_token" => $refreshToken,

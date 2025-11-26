@@ -4,6 +4,7 @@
 require_once __DIR__ . '/../../config/bootstrap.php';
 require_once __DIR__ . '/../../helpers/jwt.php';
 require_once __DIR__ . '/../../services/sessions/sessionService.php';
+require_once __DIR__ . '/../../services/auth/permissionServices.php'; // << NUEVO
 
 $pdo = getConnectionMySql();
 
@@ -14,10 +15,10 @@ if (!$refreshToken) {
     exit;
 }
 
-/** 2) Validar refresh (estructura/firma/exp) */
-$validation = validateRefreshToken($refreshToken); // ver sección 3
+/** 2) Validar refresh token */
+$validation = validateRefreshToken($refreshToken);
 if (!$validation['valid']) {
-    // limpiar cookies por higiene
+    // limpiar cookies
     setcookie('access_token', '', time() - 3600, '/');
     setcookie('refresh_token', '', time() - 3600, '/');
     header("Location: /auth/");
@@ -26,7 +27,7 @@ if (!$validation['valid']) {
 
 $userId = (int)$validation['user_id'];
 
-/** 3) Confirmar sesión en BD vía servicio */
+/** 3) Confirmar sesión en BD */
 $session = findSessionByRefreshToken($pdo, $userId, $refreshToken);
 if (!$session || (int)$session['is_revoked'] === 1) {
     setcookie('access_token', '', time() - 3600, '/');
@@ -35,7 +36,7 @@ if (!$session || (int)$session['is_revoked'] === 1) {
     exit;
 }
 
-/** 4) Ver caducidad en BD */
+/** 4) Verificar expiración */
 if (strtotime($session['expires_at']) < time()) {
     setcookie('access_token', '', time() - 3600, '/');
     setcookie('refresh_token', '', time() - 3600, '/');
@@ -43,14 +44,40 @@ if (strtotime($session['expires_at']) < time()) {
     exit;
 }
 
-/** 5) Emitir nuevo access token */
+/** 5) Obtener datos del empleado */
+$stmt = $pdo->prepare("
+    SELECT names, surname1, surname2, id_role
+    FROM employees
+    WHERE id = :id
+    LIMIT 1
+");
+$stmt->execute([':id' => $userId]);
+$emp = $stmt->fetch(PDO::FETCH_ASSOC);
+
+$fullName = trim($emp['names'] . ' ' . $emp['surname1'] . ' ' . ($emp['surname2'] ?? ''));
+$roleId   = (int)$emp['id_role'];
+
+/** 6) Obtener permisos del rol */
+$permissions = getPermissionsByRole($pdo, $roleId);
+
+/** 7) Crear nuevo Access Token */
 $payload = [
-    'id'   => $userId,
-    // Si quieres, aquí podrías obtener el nombre desde BD (servicio de usuarios) y ponerlo
+    "id"       => $userId,
+    "full_name"=> $fullName,
+    "role_id"  => $roleId,
+    "permissions" => array_keys($permissions) // opcional incluir
 ];
+
 $newAccessToken = generateToken($payload);
 
-/** 6) Setear cookie del access token (sin imprimir nada antes) */
+/** 8) Guardar sesión reconstruida */
+session_start();
+$_SESSION['employee_id']   = $userId;
+$_SESSION['employee_name'] = $fullName;
+$_SESSION['employee_role'] = $roleId;
+$_SESSION['permissions']   = $permissions;
+
+/** 9) Actualizar cookie del access token */
 setcookie(
     'access_token',
     $newAccessToken,
@@ -61,9 +88,9 @@ setcookie(
     true
 );
 
-/** 7) Tocar/actualizar la sesión en BD */
+/** 10) Actualizar sesión en BD */
 touchSession($pdo, (int)$session['id']);
 
-/** 8) Volver al dashboard (URL amigable) */
+/** 11) Redirigir al dashboard */
 header("Location: /main/");
 exit;

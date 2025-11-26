@@ -30,10 +30,7 @@ class HomeScreen extends StatelessWidget {
 
           title: Row(
             children: [
-              Image.asset(
-                'assets/images/credibueno_logo.png',
-                height: 34,
-              ),
+              Image.asset('assets/images/credibueno_logo.png', height: 34),
               const SizedBox(width: 10),
               Text(
                 "Panel principal",
@@ -81,7 +78,7 @@ class HomeScreen extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                   color: Colors.black54,
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -89,13 +86,19 @@ class HomeScreen extends StatelessWidget {
         // ============================================================
         // BOTÓN FLOTANTE
         // ============================================================
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: const Color(0xFF196273),
-          onPressed: () {
-            debugPrint("Se presionó el botón +");
-          },
-          child: const Icon(Icons.add, size: 32, color: Colors.white),
-        ),
+        floatingActionButton: authProvider.hasPermission("register_attendance")
+            ? FloatingActionButton(
+                backgroundColor: const Color(0xFF196273),
+                onPressed: () {
+                  debugPrint("Registrar asistencia presionado");
+                },
+                child: const Icon(
+                  Icons.access_time,
+                  size: 32,
+                  color: Colors.white,
+                ),
+              )
+            : null,
       ),
     );
   }

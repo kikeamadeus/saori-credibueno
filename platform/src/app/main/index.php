@@ -1,9 +1,8 @@
 <?php
 require_once __DIR__ . '/../../middleware/checkAuth.php';
-require_once __DIR__ . '/../../helpers/roles.php';
+require_once __DIR__ . '/../../helpers/permissions.php'; // ⬅ NUEVO
 
 $pageTitle = ": Dashboard";
-$roleId = $_SESSION['employee_role'] ?? null;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -11,10 +10,12 @@ $roleId = $_SESSION['employee_role'] ?? null;
 
 <body>
     <?php include APP_PATH . '/layouts/navbar.php' ?>
+
     <main>
         <div class="container">
             <p>Panel Principal de Chequeo</p>
-            <?php if (roleCanRegisterAttendance($roleId)): ?>
+
+            <?php if (hasPermission('register_attendance')): ?>
                 <a class="btn-floating" href="attendance/actions/create.php" title="Registrar Asistencia">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" color="#ffffff" fill="none" style="margin-bottom: 4px;">
                         <path d="M15 2H10" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -25,9 +26,10 @@ $roleId = $_SESSION['employee_role'] ?? null;
                     </svg>
                 </a>
             <?php endif; ?>
+
         </div>
     </main>
+
     <?php include APP_PATH . '/layouts/scripts.php' ?>
 </body>
-
 </html>
