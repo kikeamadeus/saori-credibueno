@@ -80,23 +80,37 @@ CREATE TABLE IF NOT EXISTS branches (
 -- =====================================================
 -- 6. TABLA: employees
 -- Descripción:
---   Registro de empleados con rol, estatus, sucursal y área.
+--   Registro de empleados con rol, estatus, sucursal,
+--   área y minutos de tolerancia semanal para retardos.
 -- =====================================================
 CREATE TABLE IF NOT EXISTS employees (
     id INT AUTO_INCREMENT PRIMARY KEY,
+
+    -- Datos personales
     names VARCHAR(100) NOT NULL,
     surname1 VARCHAR(100) NOT NULL,
     surname2 VARCHAR(100) DEFAULT NULL,
     email VARCHAR(100) DEFAULT NULL UNIQUE,
     phone VARCHAR(20) DEFAULT NULL,
+
+    -- Relaciones principales
     id_area INT NOT NULL COMMENT 'Área a la que pertenece el empleado',
     id_branch INT DEFAULT NULL COMMENT 'Sucursal asignada',
-    can_check_all TINYINT(1) DEFAULT 0 COMMENT '1 = Puede checar en todas las sucursales',
     id_role INT NOT NULL COMMENT 'Rol del empleado',
     status_id INT NOT NULL COMMENT 'Estado del empleado',
+
+    -- Control de asistencia
+    can_check_all TINYINT(1) DEFAULT 0 COMMENT '1 = Puede checar en todas las sucursales',
+    tolerance_minutes INT NOT NULL DEFAULT 15 COMMENT 'Minutos de tolerancia semanal para retardos',
+
+    -- Datos laborales
     hire_date DATE NOT NULL COMMENT 'Fecha de ingreso del empleado',
+
+    -- Auditoría
     created_at DATETIME NOT NULL,
     updated_at DATETIME DEFAULT NULL,
+
+    -- Llaves foráneas
     FOREIGN KEY (id_role) REFERENCES roles(id)
         ON UPDATE CASCADE ON DELETE RESTRICT,
     FOREIGN KEY (status_id) REFERENCES statuses(id)
