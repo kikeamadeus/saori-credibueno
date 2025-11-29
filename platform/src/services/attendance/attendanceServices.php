@@ -11,12 +11,53 @@
 require_once __DIR__ . '/../../config/bootstrap.php';
 
 /**
+ * Verifica si el empleado ya tiene asistencia registrada hoy
+ * (cualquier tipo distinto de NULL).
+ */
+function hasAttendanceToday(PDO $pdo, int $employeeId): bool
+{
+    $today = date('Y-m-d');
+
+    $stmt = $pdo->prepare("
+        SELECT 1
+        FROM attendance_records
+        WHERE employee_id = :employee_id
+          AND attendance_date = :today
+          AND attendance_type IS NOT NULL
+        LIMIT 1
+    ");
+
+    $stmt->execute([
+        ':employee_id' => $employeeId,
+        ':today'       => $today,
+    ]);
+
+    return (bool) $stmt->fetchColumn();
+}
+
+/**
  * Función principal para registrar asistencia
  */
 function registerAttendance($employeeId, $source, $latitude = null, $longitude = null)
 {
     $pdo = getConnectionMySql();
     date_default_timezone_set("America/Monterrey");
+
+    // ==================================================
+    // 0) Validar que hoy no tenga ya asistencia
+    // ==================================================
+    if (hasAttendanceToday($pdo, (int)$employeeId)) {
+        return [
+            "success" => false,
+            "message" => "Ya registraste tu asistencia el día de hoy."
+        ];
+    }
+
+    // ... aquí sigue TODO lo que ya tienes:
+    // - traer empleado
+    // - validar sucursal / GPS
+    // - calcular tipo (A / R / F)
+    // - insertar en attendance_records
 
     // ==================================================
     // 1) Obtener datos del empleado + sucursal
@@ -141,21 +182,26 @@ function registerAttendance($employeeId, $source, $latitude = null, $longitude =
  */
 function insertAttendance($pdo, $employeeId, $date, $hour, $type, $lat, $lng, $source)
 {
+    date_default_timezone_set("America/Monterrey");
+    // Usar hora local definida en registerAttendance()
+    $createdAt = date('Y-m-d H:i:s');
+
     $stmt = $pdo->prepare("
         INSERT INTO attendance_records 
             (employee_id, attendance_date, attendance_hour, attendance_type, attendance_latitude, attendance_longitude, source, created_at)
         VALUES
-            (:emp, :date, :hour, :type, :lat, :lng, :src, NOW())
+            (:emp, :date, :hour, :type, :lat, :lng, :src, :created_at)
     ");
 
     $stmt->execute([
-        ':emp'  => $employeeId,
-        ':date' => $date,
-        ':hour' => $hour,
-        ':type' => $type,
-        ':lat'  => $lat,
-        ':lng'  => $lng,
-        ':src'  => $source
+        ':emp'        => $employeeId,
+        ':date'       => $date,
+        ':hour'       => $hour,
+        ':type'       => $type,
+        ':lat'        => $lat,
+        ':lng'        => $lng,
+        ':src'        => $source,
+        ':created_at' => $createdAt,
     ]);
 
     return [
