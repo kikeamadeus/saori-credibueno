@@ -11,6 +11,38 @@
 require_once __DIR__ . '/../../config/bootstrap.php';
 
 /**
+ * Obtiene el historial de asistencia del día para todos los empleados
+ */
+function getTodayAttendance(PDO $pdo)
+{
+    date_default_timezone_set("America/Monterrey");
+    $today = date("Y-m-d");
+
+    $stmt = $pdo->prepare("
+        SELECT 
+            ar.id,
+            ar.employee_id,
+            CONCAT(e.names, ' ', e.surname1, ' ', e.surname2) AS employee_name,
+            ar.attendance_date,
+            ar.attendance_hour,
+            ar.attendance_type,
+            ar.source,
+            ar.created_at,
+            e.tolerance_minutes AS remaining_minutes
+        FROM attendance_records ar
+        INNER JOIN employees e ON e.id = ar.employee_id
+        WHERE ar.attendance_date = :today
+        ORDER BY ar.attendance_hour ASC
+    ");
+
+    $stmt->execute([
+        ':today' => $today
+    ]);
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
  * Verifica si el empleado ya tiene asistencia registrada hoy
  * (cualquier tipo distinto de NULL).
  */

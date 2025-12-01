@@ -57,11 +57,30 @@ $response = registerAttendance(
 // ==============================================================
 // 5) Respuesta final
 // ==============================================================
-$message = $response['message'] ?? "No fue posible registrar la asistencia.";
+if ($response['success']) {
 
-echo "<script>
-        alert('$message');
-        window.location.href='../../';
-      </script>";
-exit;
+    $type = $response['type'] ?? null;
+    $msg  = "Asistencia registrada correctamente.";
+
+    if ($type === 'F') {
+        $msg = "Lo sentimos, tu asistencia fue registrada como FALTA por checar demasiado tarde.";
+    } elseif ($type === 'R') {
+        $msg = "Asistencia registrada con RETARDO.";
+    } elseif ($type === 'A') {
+        $msg = "Asistencia registrada correctamente.";
+    }
+
+    echo "<script>
+            alert('$msg');
+            window.location.href='../../';
+          </script>";
+} else {
+
+    $msg = $response['message'] ?? "No fue posible registrar la asistencia.";
+
+    echo "<script>
+            alert('$msg');
+            window.location.href='../../';
+          </script>";
+}
 

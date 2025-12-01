@@ -1,8 +1,13 @@
 <?php
 require_once __DIR__ . '/../../middleware/checkAuth.php';
 require_once __DIR__ . '/../../helpers/permissions.php'; // ⬅ NUEVO
+require_once APP_PATH . '/services/attendance/attendanceServices.php';
 
 $pageTitle = ": Dashboard";
+
+// Obtener asistencias del día
+$pdo = getConnectionMySql();
+$attendance = getTodayAttendance($pdo);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -13,7 +18,37 @@ $pageTitle = ": Dashboard";
 
     <main>
         <div class="container">
-            <p>Panel Principal de Chequeo</p>
+            <h1>Registro de Asistencia</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="th radius-top-left">Empleado</th>
+                        <th class="th">Fecha</th>
+                        <th class="th">Hora</th>
+                        <th class="th">Tipo</th>
+                        <th class="th">Origen</th>
+                        <th class="th radius-top-right">Minutos restantes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($attendance)): ?>
+                        <?php foreach ($attendance as $row): ?>
+                            <tr>
+                                <td class="td"><?= htmlspecialchars($row['employee_name']) ?></td>
+                                <td class="td"><?= $row['attendance_date'] ?></td>
+                                <td class="td"><?= $row['attendance_hour'] ?></td>
+                                <td class="td"><?= $row['attendance_type'] ?></td>
+                                <td class="td"><?= strtoupper($row['source']) ?></td>
+                                <td class="td"><?= $row['remaining_minutes'] ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" class="text-center">No hay asistencias registradas hoy.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
 
             <?php if (hasPermission('register_attendance')): ?>
                 <a class="btn-floating" href="attendance/actions/create.php" title="Registrar Asistencia">
