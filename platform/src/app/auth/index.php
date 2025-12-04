@@ -15,10 +15,10 @@ $pageTitle = ': Check-in & Asistencia';
                     <img class="img-login" src="<?php echo BASE_URL . '/public/image/logo.png'; ?>" alt="Credibueno: Nómina & Asistencia">
                     <form action="login.php" method="POST">
                         <div class="input-field">
-                            <input class="input-login" placeholder="Usuario" id="username" name="username" type="text">
+                            <input class="input-login" placeholder="Usuario" id="username" name="username" type="text" />
                         </div>
                         <div class="input-field">
-                            <input class="input-login" placeholder="Contraseña" id="password" name="password" type="password">
+                            <input class="input-login" placeholder="Contraseña" id="password" name="password" type="password" autocomplete="new-password" autocorrect="off" autocapitalize="none" spellcheck="false" />
                         </div>
                         <button type="submit">Iniciar Sesión</button>
                         <?php if (isset($_SESSION['error_message'])): ?>

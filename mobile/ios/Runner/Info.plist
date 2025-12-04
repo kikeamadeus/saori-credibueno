@@ -47,5 +47,9 @@
     <true/>
     <key>UIStatusBarHidden</key>
     <false/>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Esta aplicación requiere tu ubicación para registrar asistencia.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Esta aplicación utiliza tu ubicación para validar la asistencia.</string>
   </dict>
 </plist>

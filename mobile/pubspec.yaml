@@ -20,6 +20,7 @@ dependencies:
   rename_app: ^1.6.5
   flutter_launcher_icons: ^0.13.1 # Para cambiar el ícono de la app
   google_fonts: ^6.1.0          # Fuentes de Google
+  geolocator: ^11.0.0          # Geolocalización
 
 dev_dependencies:
   flutter_test:

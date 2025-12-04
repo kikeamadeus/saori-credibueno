@@ -2,6 +2,12 @@
     RewriteEngine On
     DirectorySlash Off
 
+    # =====================================================
+    # >>> Fix: permitir HTTP_AUTHORIZATION (Bearer Tokens)
+    # =====================================================
+    RewriteCond %{HTTP:Authorization} ^(.*)
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%1]
+
     # Bloquear acceso directo por URL a carpetas internas
     RewriteRule ^(services|config|layouts|middleware|vendor)($|/.*$) - [F,L]
 

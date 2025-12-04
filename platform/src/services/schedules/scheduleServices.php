@@ -9,61 +9,49 @@
 require_once __DIR__ . '/../../config/bootstrap.php';
 
 /**
- * Verificar si el empleado ya registró ENTRADA hoy
- * entre 07:30:00 y 09:30:00.
+ * Crea los horarios base para un empleado recién creado.
  */
-function hasEntradaToday(int $employeeId): bool
+function createDefaultSchedule(int $employeeId): bool
 {
     $pdo = getConnectionMySql();
 
-    $stmt = $pdo->prepare("
-        SELECT COUNT(*) AS total
-        FROM attendance_records
-        WHERE employee_id = :id
-          AND event_type = 'entrada'
-          AND DATE(event_datetime) = CURDATE()
-          AND TIME(event_datetime) BETWEEN '07:30:00' AND '09:30:00'
-        LIMIT 1
-    ");
+    // Horario base Credibueno
+    $standardSchedule = [
+        1 => ['08:30:00', '14:00:00', '16:00:00', '18:00:00'], // Lunes
+        2 => ['08:30:00', '14:00:00', '16:00:00', '18:00:00'], // Martes
+        3 => ['08:30:00', '14:00:00', '16:00:00', '18:00:00'], // Miércoles
+        4 => ['08:30:00', '14:00:00', '16:00:00', '18:00:00'], // Jueves
+        5 => ['08:30:00', '14:00:00', '16:00:00', '18:00:00'], // Viernes
 
-    $stmt->execute(['id' => $employeeId]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Sábado (media jornada)
+        6 => ['09:00:00', null, null, '14:00:00'],
 
-    return ($row['total'] ?? 0) > 0;
-}
+        // Domingo (descanso)
+        7 => [null, null, null, null]
+    ];
 
-/**
- * Verifica si la hora actual es MAYOR a 09:30:00.
- */
-function isLateForEntrada(DateTime $now): bool
-{
-    $limit = new DateTime($now->format("Y-m-d") . " 09:30:00");
-    return $now > $limit;
-}
+    $sql = "
+        INSERT INTO schedules
+        (employee_id, day_of_week, entry_time, lunch_out_time, lunch_in_time, exit_time, created_at)
+        VALUES
+        (:employee_id, :day_of_week, :entry_time, :lunch_out_time, :lunch_in_time, :exit_time, NOW())
+    ";
 
-/**
- * Verifica si el empleado ya tiene una FALTA hoy
- */
-function hasFaltaToday(int $employeeId): bool
-{
-    $pdo = getConnectionMySql();
+    $stmt = $pdo->prepare($sql);
 
-    $today = date("Y-m-d");
+    foreach ($standardSchedule as $day => $times) {
+        [$entry, $lunchOut, $lunchIn, $exit] = $times;
 
-    $stmt = $pdo->prepare("
-        SELECT id 
-        FROM attendance_records
-        WHERE employee_id = :id
-          AND DATE(event_datetime) = :today
-          AND event_type = 'falta'
-        LIMIT 1
-    ");
-    
-    $stmt->execute([
-        ':id' => $employeeId,
-        ':today' => $today
-    ]);
+        $stmt->execute([
+            ':employee_id'  => $employeeId,
+            ':day_of_week'  => $day,
+            ':entry_time'   => $entry,
+            ':lunch_out_time' => $lunchOut,
+            ':lunch_in_time'  => $lunchIn,
+            ':exit_time'    => $exit
+        ]);
+    }
 
-    return $stmt->fetch(PDO::FETCH_ASSOC) ? true : false;
+    return true;
 }
 ?>

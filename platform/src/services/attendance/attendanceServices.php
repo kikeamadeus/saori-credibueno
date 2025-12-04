@@ -1,11 +1,16 @@
 <?php
 /**
- * Servicio: Registrar asistencia (versión simple / fase 1)
- * -------------------------------------------------------
- * Reglas aplicadas en esta versión:
- * - Solo registra ENTRADA
- * - Determina A, R o F según hora real vs hora oficial
- * - Descuenta tolerancia
+ * Servicio de asistencia (fase ENTRADA con horarios por empleado)
+ * ---------------------------------------------------------------
+ * Reglas actuales:
+ * - Solo registra ENTRADA (un registro por día).
+ * - Usa la tabla schedules para obtener la hora de entrada.
+ * - Permite checar desde 1 hora antes de la hora de entrada.
+ * - Calcula A / R / F:
+ *      A = asistencia (mientras tenga tolerancia >= 0)
+ *      R = retardo (cuando ya no hay tolerancia disponible)
+ *      F = falta (si intenta checar después de 1 hora + 1 minuto)
+ * - Descuenta tolerancia; puede quedar en valores negativos.
  */
 
 require_once __DIR__ . '/../../config/bootstrap.php';
@@ -68,28 +73,49 @@ function hasAttendanceToday(PDO $pdo, int $employeeId): bool
 }
 
 /**
- * Función principal para registrar asistencia
+ * Obtiene el horario de hoy para el empleado (tabla schedules)
+ */
+function getTodaySchedule(PDO $pdo, int $employeeId): ?array
+{
+    $dayOfWeek = (int) date('N'); // 1=Lunes ... 7=Domingo
+
+    $stmt = $pdo->prepare("
+        SELECT entry_time, lunch_out_time, lunch_in_time, exit_time
+        FROM schedules
+        WHERE employee_id = :emp
+          AND day_of_week = :day
+        LIMIT 1
+    ");
+
+    $stmt->execute([
+        ':emp' => $employeeId,
+        ':day' => $dayOfWeek
+    ]);
+
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    return $row ?: null;
+}
+
+/**
+ * Función principal para registrar asistencia (solo ENTRADA por ahora)
  */
 function registerAttendance($employeeId, $source, $latitude = null, $longitude = null)
 {
     $pdo = getConnectionMySql();
     date_default_timezone_set("America/Monterrey");
 
+    $employeeId = (int) $employeeId;
+
     // ==================================================
     // 0) Validar que hoy no tenga ya asistencia
     // ==================================================
-    if (hasAttendanceToday($pdo, (int)$employeeId)) {
+    if (hasAttendanceToday($pdo, $employeeId)) {
         return [
             "success" => false,
             "message" => "Ya registraste tu asistencia el día de hoy."
         ];
     }
-
-    // ... aquí sigue TODO lo que ya tienes:
-    // - traer empleado
-    // - validar sucursal / GPS
-    // - calcular tipo (A / R / F)
-    // - insertar en attendance_records
 
     // ==================================================
     // 1) Obtener datos del empleado + sucursal
@@ -98,8 +124,6 @@ function registerAttendance($employeeId, $source, $latitude = null, $longitude =
         SELECT 
             e.id,
             e.tolerance_minutes,
-            e.entry_time_weekday,
-            e.entry_time_saturday,
             e.id_branch,
             b.latitude AS branch_lat,
             b.longitude AS branch_lng
@@ -124,90 +148,142 @@ function registerAttendance($employeeId, $source, $latitude = null, $longitude =
         $longitude = $emp['branch_lng'];
 
         if (!$latitude || !$longitude) {
-            return ["success" => false, "message" => "Sucursal sin coordenadas"];
+            return ["success" => false, "message" => "Sucursal sin coordenadas configuradas. Contacta a sistemas."];
         }
     } elseif ($source === 'mobile') {
         if (!$latitude || !$longitude) {
-            return ["success" => false, "message" => "GPS requerido"];
+            return ["success" => false, "message" => "Se requiere GPS para registrar asistencia desde el móvil."];
         }
     } else {
-        return ["success" => false, "message" => "Origen inválido"];
+        return ["success" => false, "message" => "Origen inválido para registrar asistencia."];
     }
 
     // ==================================================
-    // 3) Hora actual
+    // 3) Hora y fecha actuales
     // ==================================================
-    $now = new DateTime();
-    $hourNow = $now->format("H:i");
+    $now       = new DateTime();
+    $hourNow   = $now->format("H:i:s");
     $dateToday = $now->format("Y-m-d");
 
     // ==================================================
-    // 4) Determinar horario oficial según día
+    // 4) Obtener horario de hoy desde schedules
     // ==================================================
-    $dayOfWeek = (int)$now->format("N"); // 1=Lun ... 7=Dom
+    $schedule = getTodaySchedule($pdo, $employeeId);
 
-    if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
-        // Lunes a Viernes
-        $entryTime = $emp['entry_time_weekday']; // 08:30:00
-        $limitFalta = "09:31:00";
-    } elseif ($dayOfWeek === 6) {
-        // Sábado
-        $entryTime = $emp['entry_time_saturday']; // 09:00:00
-        $limitFalta = "09:31:00";
-    } else {
-        // Domingo → siempre asistencia A
-        return insertAttendance($pdo, $employeeId, $dateToday, $hourNow, "A", $latitude, $longitude, $source);
+    if (!$schedule || empty($schedule['entry_time'])) {
+        // No hay horario de entrada configurado para hoy
+        return [
+            "success" => false,
+            "message" => "Hoy no tienes un horario de entrada configurado. Contacta a sistemas."
+        ];
+    }
+
+    $entryTime = $schedule['entry_time']; // ej. "08:30:00"
+
+    // ==================================================
+    // 5) Validar ventana de tiempo para registrar ENTRADA
+    //     - Puede checar desde 1 hora antes de su hora de entrada
+    //     - Se considera FALTA si intenta checar después de (entrada + 61 min)
+    // ==================================================
+    $dtEntry = new DateTime("$dateToday $entryTime");
+
+    // Hora mínima para poder registrar entrada (1 hora antes)
+    $dtAllowedStart = clone $dtEntry;
+    $dtAllowedStart->modify('-1 hour');
+    $allowedStart = $dtAllowedStart->format('H:i:s');
+
+    // Límite de falta = entrada + 61 minutos
+    $dtLimit = clone $dtEntry;
+    $dtLimit->modify('+61 minutes');
+    $limitFalta = $dtLimit->format('H:i:s');
+
+    // Demasiado temprano (antes de la ventana permitida)
+    if ($hourNow < $allowedStart) {
+        $horaMostrada = substr($entryTime, 0, 5); // hh:mm
+        return [
+            "success" => false,
+            "message" => "Todavía no puedes registrar tu entrada. Tu horario de entrada es a las $horaMostrada."
+        ];
+    }
+
+    // FALTA inmediata si intenta registrar después del límite
+    if ($hourNow > $limitFalta) {
+        return insertAttendance(
+            $pdo,
+            $employeeId,
+            $dateToday,
+            $hourNow,
+            "F",
+            $latitude,
+            $longitude,
+            $source
+        );
     }
 
     // ==================================================
-    // 5) Calcular minutos tarde
+    // 6) Calcular minutos tarde respecto a la hora de entrada
     // ==================================================
-    $dtEntry  = new DateTime("$dateToday $entryTime");
-    $dtNow    = new DateTime("$dateToday $hourNow");
+    $dtNow = new DateTime("$dateToday $hourNow");
 
-    $minutesLate = max(0, ($dtNow->getTimestamp() - $dtEntry->getTimestamp()) / 60);
+    $minutesLate = max(
+        0,
+        ($dtNow->getTimestamp() - $dtEntry->getTimestamp()) / 60
+    );
 
     // ==================================================
-    // 6) Determinar A, R o F
+    // 7) Determinar A o R, y actualizar tolerancia
     // ==================================================
-
-    // FALTA automátcia
-    if ($hourNow >= $limitFalta) {
-        return insertAttendance($pdo, $employeeId, $dateToday, $hourNow, "F", $latitude, $longitude, $source);
-    }
-
     $type = "A"; // default asistencia
 
     if ($minutesLate > 0) {
+        $currentTol = (int) $emp['tolerance_minutes'];
 
-        if ($emp['tolerance_minutes'] > 0) {
-
-            // Usa tolerancia
-            $newTol = $emp['tolerance_minutes'] - $minutesLate;
-
+        if ($currentTol > 0) {
+            // Todavía tiene tolerancia: se descuenta y sigue siendo A
+            $newTol = $currentTol - $minutesLate;
             $upd = $pdo->prepare("
-                UPDATE employees SET tolerance_minutes = :tol WHERE id = :id
+                UPDATE employees 
+                SET tolerance_minutes = :tol 
+                WHERE id = :id
             ");
             $upd->execute([
                 ':tol' => $newTol,
                 ':id'  => $employeeId
             ]);
 
-            $type = "A"; // Mientras tenga tolerancia → Asistencia
+            $type = "A"; // sigue siendo asistencia
 
         } else {
+            // Ya no tiene tolerancia: es retardo
+            $newTol = $currentTol - $minutesLate; // puede quedar negativo
+            $upd = $pdo->prepare("
+                UPDATE employees 
+                SET tolerance_minutes = :tol 
+                WHERE id = :id
+            ");
+            $upd->execute([
+                ':tol' => $newTol,
+                ':id'  => $employeeId
+            ]);
 
-            // No hay tolerancia: es retardo
             $type = "R";
         }
     }
 
     // ==================================================
-    // 7) Insertar registro
+    // 8) Insertar registro de entrada
     // ==================================================
-    return insertAttendance($pdo, $employeeId, $dateToday, $hourNow, $type, $latitude, $longitude, $source);
+    return insertAttendance(
+        $pdo,
+        $employeeId,
+        $dateToday,
+        $hourNow,
+        $type,
+        $latitude,
+        $longitude,
+        $source
+    );
 }
-
 
 /**
  * Inserta en la base de datos el registro de asistencia
@@ -215,7 +291,6 @@ function registerAttendance($employeeId, $source, $latitude = null, $longitude =
 function insertAttendance($pdo, $employeeId, $date, $hour, $type, $lat, $lng, $source)
 {
     date_default_timezone_set("America/Monterrey");
-    // Usar hora local definida en registerAttendance()
     $createdAt = date('Y-m-d H:i:s');
 
     $stmt = $pdo->prepare("

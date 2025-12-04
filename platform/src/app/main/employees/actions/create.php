@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../../../config/bootstrap.php';
 require_once APP_PATH . '/services/employees/employeesServices.php';
+require_once APP_PATH . '/services/schedules/scheduleServices.php'; // <-- servicio agregado
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header("Location: ../index.php");
@@ -24,6 +25,10 @@ $data = [
 $employeeId = createEmployee($data);
 
 if ($employeeId !== null) {
+
+    // Crear los horarios por default del empleado
+    createDefaultSchedule($employeeId);
+
     echo "<script>
             alert('Empleado creado correctamente.');
             window.location.href='../index.php';
@@ -34,3 +39,4 @@ if ($employeeId !== null) {
             window.location.href='../index.php';
          </script>";
 }
+?>

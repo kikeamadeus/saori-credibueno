@@ -70,8 +70,7 @@ function createEmployee(array $data): ?int {
  * Actualización de datos del empleado.
  */
 
-function updateEmployee(array $data): bool
-{
+function updateEmployee(array $data): bool{
     $pdo = getConnectionMySql();
 
     $sql = "
@@ -111,7 +110,7 @@ function updateEmployee(array $data): bool
 /**
  * Obtener todos los empleados con su estatus
  */
-function getAllEmployees(): array {
+function getAllEmployees(?int $currentEmployeeId = null): array {
     $pdo = getConnectionMySql();
 
     $sql = "
@@ -122,23 +121,16 @@ function getAllEmployees(): array {
             e.surname2,
             e.email,
             e.phone,
-
             e.id_area,
             a.name AS area_name,
-
             e.id_branch,
             b.name AS branch_name,
-
             e.can_check_all,
-
             e.id_role,
             r.name AS role_name,
-
             e.status_id,
             s.name AS status_name,
-
             u.username AS username,
-
             e.hire_date,
             e.created_at,
             e.updated_at
@@ -148,9 +140,21 @@ function getAllEmployees(): array {
         LEFT JOIN branches b ON b.id = e.id_branch
         INNER JOIN roles r ON r.id = e.id_role
         LEFT JOIN users u ON u.id_employee = e.id
-        ORDER BY e.id ASC
     ";
 
-    $stmt = $pdo->query($sql);
+    if ($currentEmployeeId !== null) {
+        $sql .= " WHERE e.id != :currentEmployeeId ";
+    }
+
+    $sql .= " ORDER BY e.id ASC ";
+
+    $stmt = $pdo->prepare($sql);
+
+    if ($currentEmployeeId !== null) {
+        $stmt->bindValue(':currentEmployeeId', $currentEmployeeId, PDO::PARAM_INT);
+    }
+
+    $stmt->execute();
+
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
