@@ -15,6 +15,63 @@
 
 require_once __DIR__ . '/../../config/bootstrap.php';
 
+function getTodayAttendanceByRole(PDO $pdo, int $employeeId, int $roleId): array
+{
+    date_default_timezone_set("America/Monterrey");
+    $today = date("Y-m-d");
+
+    // Roles con vista total
+    if (in_array($roleId, [1, 2, 3])) {
+
+        $stmt = $pdo->prepare("
+            SELECT 
+                ar.id,
+                ar.employee_id,
+                CONCAT(e.names, ' ', e.surname1, ' ', e.surname2) AS employee_name,
+                ar.attendance_date,
+                ar.attendance_hour,
+                ar.attendance_type,
+                ar.source,
+                e.tolerance_minutes AS remaining_minutes
+            FROM attendance_records ar
+            INNER JOIN employees e ON e.id = ar.employee_id
+            WHERE ar.attendance_date = :today
+            ORDER BY ar.attendance_hour ASC
+        ");
+
+        $stmt->execute([':today' => $today]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Rol empleado → solo su registro
+    $stmt = $pdo->prepare("
+        SELECT 
+            ar.id,
+            ar.employee_id,
+            CONCAT(e.names, ' ', e.surname1, ' ', e.surname2) AS employee_name,
+            ar.attendance_date,
+            ar.attendance_hour,
+            ar.attendance_type,
+            ar.source,
+            e.tolerance_minutes AS remaining_minutes
+        FROM attendance_records ar
+        INNER JOIN employees e ON e.id = ar.employee_id
+        WHERE ar.attendance_date = :today
+          AND ar.employee_id = :emp
+        LIMIT 1
+    ");
+
+    $stmt->execute([
+        ':today' => $today,
+        ':emp'   => $employeeId
+    ]);
+
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Para homogeneidad, siempre regresar array
+    return $row ? [$row] : [];
+}
+
 /**
  * Obtiene el historial de asistencia del día para todos los empleados
  */

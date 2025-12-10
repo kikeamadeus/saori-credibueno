@@ -7,7 +7,11 @@ $pageTitle = ": Dashboard";
 
 // Obtener asistencias del día
 $pdo = getConnectionMySql();
-$attendance = getTodayAttendance($pdo);
+$attendance = getTodayAttendanceByRole(
+    $pdo,
+    $_SESSION['employee_id'],
+    $_SESSION['employee_role']
+);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -35,11 +39,11 @@ $attendance = getTodayAttendance($pdo);
                         <?php foreach ($attendance as $row): ?>
                             <tr>
                                 <td class="td"><?= htmlspecialchars($row['employee_name']) ?></td>
-                                <td class="td"><?= $row['attendance_date'] ?></td>
-                                <td class="td"><?= $row['attendance_hour'] ?></td>
-                                <td class="td"><?= $row['attendance_type'] ?></td>
-                                <td class="td"><?= strtoupper($row['source']) ?></td>
-                                <td class="td"><?= $row['remaining_minutes'] ?></td>
+                                <td class="td center-align"><?= $row['attendance_date'] ?></td>
+                                <td class="td center-align"><?= $row['attendance_hour'] ?></td>
+                                <td class="td center-align"><?= $row['attendance_type'] ?></td>
+                                <td class="td center-align"><?= strtoupper($row['source']) ?></td>
+                                <td class="td center-align"><?= $row['remaining_minutes'] ?></td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>

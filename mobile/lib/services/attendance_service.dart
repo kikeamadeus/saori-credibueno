@@ -38,15 +38,46 @@ class AttendanceService {
         }),
       );
 
-      final data = json.decode(response.body);
-
-      // El backend siempre devuelve {success, message, type}
-      return data;
+      return json.decode(response.body);
     } catch (e) {
       return {
         "success": false,
         "message": "Error de conexión. Revisa tu internet.",
       };
+    }
+  }
+
+  /// ==========================================================
+  /// OBTENER ASISTENCIA DEL DÍA (EMPLEADO)
+  /// ==========================================================
+  Future<List<Map<String, dynamic>>> getTodayAttendance() async {
+    final accessToken = await TokenStorage.getAccessToken();
+
+    if (accessToken == null) {
+      return [];
+    }
+
+    final url = Uri.parse(
+      "${AppConfig.baseUrl}/attendance/get_today_attendance.php",
+    );
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          "Authorization": "Bearer $accessToken",
+        },
+      );
+
+      final data = json.decode(response.body);
+
+      if (data["success"] == true && data["data"] is List) {
+        return List<Map<String, dynamic>>.from(data["data"]);
+      }
+
+      return [];
+    } catch (e) {
+      return [];
     }
   }
 }
